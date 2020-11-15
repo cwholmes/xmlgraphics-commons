@@ -61,9 +61,9 @@ public abstract class AbstractImageSessionContext implements ImageSessionContext
     static {
         //TODO Temporary measure to track down a problem
         //See: http://markmail.org/message/k6mno3jsxmovaz2e
-        String noSourceReuseString = System.getProperty(
-                         AbstractImageSessionContext.class.getName() + ".no-source-reuse");
-        noSourceReuse = Boolean.valueOf(noSourceReuseString);
+        noSourceReuse =
+                Boolean.getBoolean(
+                        AbstractImageSessionContext.class.getName() + ".no-source-reuse");
     }
 
     private final FallbackResolver fallbackResolver;
@@ -220,7 +220,9 @@ public abstract class AbstractImageSessionContext implements ImageSessionContext
 
         if (isReusable(src)) {
             //Only return the Source if it's reusable
-            log.debug("Returning Source for " + uri);
+            if (log.isDebugEnabled()) {
+                log.debug("Returning Source for " + uri);
+            }
             sessionSources.put(uri, src);
         } else {
             //Otherwise, try to close if possible and forget about it

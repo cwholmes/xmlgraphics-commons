@@ -19,15 +19,18 @@
 
 package org.apache.xmlgraphics.util.uri;
 
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,7 +44,9 @@ import org.apache.xmlgraphics.util.io.Base64DecodeStream;
  */
 public class DataURIResolver implements URIResolver {
 
-    /** logger */
+    /**
+     * logger
+     */
     private static final Log LOG = LogFactory.getLog(URIResolver.class);
 
 
@@ -66,18 +71,20 @@ public class DataURIResolver implements URIResolver {
         int commaPos = href.indexOf(',');
         // header is of the form data:[<mediatype>][;base64]
         String header = href.substring(0, commaPos);
-        String data = href.substring(commaPos + 1);
         if (header.endsWith(";base64")) {
-            byte[] bytes = new byte[0];
             try {
-                bytes = data.getBytes("UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                StringReader dataReader = new StringReader(href);
+                long read = dataReader.skip(commaPos + 1);
+                if (read != (commaPos + 1)) {
+                    LOG.warn("Could not skip the header data.");
+                    return null;
+                }
+                Base64DecodeStream decodedStream =
+                        new Base64DecodeStream(new ReaderInputStream(dataReader, Charset.forName("UTF-8")));
+                return new StreamSource(decodedStream, href);
+            } catch (IOException e) {
+                LOG.warn(e.getMessage());
             }
-            ByteArrayInputStream encodedStream = new ByteArrayInputStream(bytes);
-            Base64DecodeStream decodedStream = new Base64DecodeStream(
-                    encodedStream);
-            return new StreamSource(decodedStream, href);
         } else {
             String encoding = "UTF-8";
             final int charsetpos = header.indexOf(";charset=");
@@ -85,10 +92,9 @@ public class DataURIResolver implements URIResolver {
                 encoding = header.substring(charsetpos + 9);
             }
             try {
-                final String unescapedString = URLDecoder
-                        .decode(data, encoding);
-                return new StreamSource(new java.io.StringReader(
-                        unescapedString), href);
+                String data = href.substring(commaPos + 1);
+                final String unescapedString = URLDecoder.decode(data, encoding);
+                return new StreamSource(new StringReader(unescapedString), href);
             } catch (IllegalArgumentException e) {
                 LOG.warn(e.getMessage());
             } catch (UnsupportedEncodingException e) {

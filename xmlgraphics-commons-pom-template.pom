@@ -26,8 +26,8 @@ http://maven.apache.org/maven-v4_0_0.xsd">
   <version>@version@</version>
   <url>http://xmlgraphics.apache.org/commons/</url>
   <description>
-    Apache XML Graphics Commons is a library that consists of several reusable 
-    components used by Apache Batik and Apache FOP. Many of these components 
+    Apache XML Graphics Commons is a library that consists of several reusable
+    components used by Apache Batik and Apache FOP. Many of these components
     can easily be used separately outside the domains of SVG and XSL-FO.
   </description>
   <inceptionYear>2005</inceptionYear>
@@ -77,5 +77,11 @@ http://maven.apache.org/maven-v4_0_0.xsd">
       <artifactId>commons-logging</artifactId>
       <version>1.0.4</version>
     </dependency>
+      <dependency>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+          <version>2.6</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 </project>
